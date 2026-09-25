@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MET Police PRC</title>
+<link rel="stylesheet" href="css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+<header class="top">
+  <div class="brand"><div class="crest small">MPS</div><div><b>METROPOLITAN POLICE SERVICE</b><span>POLICE RECORDS & COMMUNICATIONS</span></div></div>
+  <div class="user"><span id="userCallsign">Loading...</span><button class="secondary" onclick="logout()">SIGN OUT</button></div>
+</header>
+<div class="shell">
+<aside>
+  <button class="nav active" data-page="home">▣ Dashboard</button>
+  <button class="nav" data-page="arrests">⚖ Arrests</button>
+  <button class="nav" data-page="bolos">● BOLOs</button>
+  <button class="nav" data-page="alerts">! Alerts</button>
+  <button class="nav" data-page="radio">◉ Radio</button>
+  <button class="nav" data-page="search">⌕ PNC Search</button>
+  <button class="nav" data-page="officers">♙ Officers</button>
+  <button class="nav" data-page="audit">≡ Audit</button>
+  <button class="nav admin-only" data-page="admin">⚙ Administration</button>
+</aside>
+
+<main>
+<section id="home" class="page active">
+  <div class="heading"><h2>Command Dashboard</h2><p>Live operational overview.</p></div>
+  <div class="stats">
+    <div><small>ACTIVE BOLOS</small><strong id="statBolos">0</strong></div>
+    <div><small>ACTIVE ALERTS</small><strong id="statAlerts">0</strong></div>
+    <div><small>ARREST RECORDS</small><strong id="statArrests">0</strong></div>
+    <div><small>OFFICERS</small><strong id="statOfficers">0</strong></div>
+  </div>
+  <div class="columns">
+    <div class="panel"><h3>Latest Alerts</h3><div id="homeAlerts"></div></div>
+    <div class="panel"><h3>Live Radio</h3><div id="homeRadio" class="feed"></div></div>
+  </div>
+</section>
+
+<section id="arrests" class="page">
+<div class="heading"><h2>Arrest Records</h2><p>Create fictional RP arrest records.</p></div>
+<div class="panel"><h3>Log Arrest</h3><form id="arrestForm" class="formgrid">
+<input id="aSubject" placeholder="Subject / RP name" required>
+<input id="aCase" placeholder="Case reference">
+<input id="aOffence" placeholder="Offence" required>
+<input id="aLocation" placeholder="Location" required>
+<select id="aStatus"><option>In Custody</option><option>Released</option><option>Transferred</option><option>Charged</option></select>
+<textarea id="aNotes" placeholder="Notes"></textarea>
+<button class="primary">LOG ARREST</button>
+</form></div>
+<div class="panel"><h3>Recent arrests</h3><div class="table-wrap"><table><thead><tr><th>Reference</th><th>Subject</th><th>Offence</th><th>Officer</th><th>Status</th><th>Time</th></tr></thead><tbody id="arrestRows"></tbody></table></div></div>
+</section>
+
+<section id="bolos" class="page">
+<div class="heading"><h2>BOLO Management</h2><p>Publish live lookouts to connected PRC users.</p></div>
+<div class="panel"><h3>Publish BOLO</h3><form id="boloForm" class="formgrid">
+<select id="bType"><option>Person</option><option>Vehicle</option><option>Property</option><option>Missing Person</option><option>Officer Safety</option></select>
+<select id="bPriority"><option>LOW</option><option>MEDIUM</option><option>HIGH</option><option>CRITICAL</option></select>
+<input id="bSubject" placeholder="Subject" required>
+<input id="bIdentifier" placeholder="Identifier / registration">
+<input id="bLocation" placeholder="Last known location" required>
+<input id="bIncident" placeholder="Incident reference">
+<textarea id="bDescription" placeholder="Description" required></textarea>
+<button class="danger">PUBLISH BOLO</button>
+</form></div>
+<div class="panel"><h3>Active BOLOs</h3><div id="boloList"></div></div>
+</section>
+
+<section id="alerts" class="page">
+<div class="heading"><h2>Force Alerts</h2><p>Broadcast live RP alerts.</p></div>
+<div class="panel"><form id="alertForm" class="formgrid">
+<select id="fType"><option>General</option><option>Officer Safety</option><option>Incident</option><option>Missing Person</option><option>Emergency</option></select>
+<select id="fPriority"><option>LOW</option><option>MEDIUM</option><option>HIGH</option><option>CRITICAL</option></select>
+<textarea id="fMessage" placeholder="Alert message" required></textarea>
+<button class="danger">PUBLISH ALERT</button>
+</form></div>
+<div class="panel"><h3>Active alerts</h3><div id="alertList"></div></div>
+</section>
+
+<section id="radio" class="page">
+<div class="heading"><h2>ERLC Radio</h2><p>Live PRC radio traffic. BOLOs and alerts are automatically broadcast with the issuing callsign.</p></div>
+<div class="panel"><div id="radioFeed" class="feed tall"></div></div>
+<div class="panel"><h3>Manual broadcast</h3><form id="radioForm"><select id="rType"><option>GENERAL</option><option>INCIDENT</option><option>BOLO</option><option>OFFICER SAFETY</option><option>EMERGENCY</option></select><textarea id="rMessage" placeholder="Radio transmission" required></textarea><button class="primary">TRANSMIT</button></form></div>
+</section>
+
+<section id="search" class="page">
+<div class="heading"><h2>PNC Search</h2><p>Search fictional RP records stored in this PRC.</p></div>
+<div class="panel"><input id="searchBox" placeholder="Search reference, subject, offence, location or callsign..."></div>
+<div class="panel" id="searchResults">Enter a search term.</div>
+</section>
+
+<section id="officers" class="page">
+<div class="heading"><h2>Officer Directory</h2><p>Authenticated PRC personnel.</p></div>
+<div class="panel table-wrap"><table><thead><tr><th>Name</th><th>Callsign</th><th>Rank</th><th>Department</th><th>Status</th></tr></thead><tbody id="officerRows"></tbody></table></div>
+</section>
+
+<section id="audit" class="page">
+<div class="heading"><h2>Audit Log</h2><p>System activity.</p></div>
+<div class="panel table-wrap"><table><thead><tr><th>Time</th><th>Callsign</th><th>Action</th><th>Reference</th></tr></thead><tbody id="auditRows"></tbody></table></div>
+</section>
+
+<section id="admin" class="page">
+<div class="heading"><h2>Administration</h2><p>Restricted administrator area.</p></div>
+<div class="panel">
+<h3>Officer account management</h3>
+<p class="muted">Create authentication users in Supabase Authentication, then create their officer profile in the officers table. Never place a service-role/secret key in this website.</p>
+<div id="adminStatus"></div>
+</div>
+</section>
+
+<footer>FICTIONAL ERLC ROLEPLAY SYSTEM • NOT AN OFFICIAL POLICE DATABASE</footer>
+</main>
+</div>
+<script src="js/supabase.js"></script>
+<script src="js/prc.js"></script>
+</body>
+</html>
