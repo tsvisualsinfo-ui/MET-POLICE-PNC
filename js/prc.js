@@ -217,13 +217,60 @@ async function deleteRadio(id) {
 }
 function render(){
  statBolos.textContent=bolos.filter(x=>x.status==="ACTIVE").length;statAlerts.textContent=alerts.filter(x=>x.status==="ACTIVE").length;statArrests.textContent=arrests.length;statOfficers.textContent=officers.length;
- arrestRows.innerHTML=arrests.map(x=>`<tr><td>${esc(x.reference)}</td><td>${esc(x.subject)}</td><td>${esc(x.offence)}</td><td>${esc(x.officers?.callsign||"")}</td><td>${esc(x.custody_status)}</td><td>${esc(new Date(x.created_at).toLocaleString("en-GB"))}</td></tr>`).join("");
+ arrestRows.innerHTML = arrests.map(x => `
+  <tr>
+    <td>${esc(x.reference)}</td>
+    <td>${esc(x.subject)}</td>
+    <td>${esc(x.offence)}</td>
+    <td>${esc(x.officers?.callsign || "")}</td>
+    <td>${esc(x.custody_status)}</td>
+    <td>${esc(new Date(x.created_at).toLocaleString("en-GB"))}</td>
+
+    ${
+      me.role === "admin"
+        ? `<td>
+            <button class="danger"
+              onclick="deleteArrest('${x.id}','${esc(x.reference)}')">
+              DELETE
+            </button>
+           </td>`
+        : ""
+    }
+  </tr>
+`).join("");
  boloList.innerHTML=bolos.filter(x=>x.status==="ACTIVE").map(x=>`<div class="record"><span class="tag ${pill(x.priority)}">${esc(x.priority)}</span> <b>${esc(x.reference)}</b><h3>${esc(x.subject)}</h3><p>${esc(x.description)}</p><small>Location: ${esc(x.location)} • ${esc(x.officers?.callsign||"")} • ${esc(new Date(x.created_at).toLocaleString("en-GB"))}</small><br><button class="secondary" onclick="closeBolo('${x.id}','${esc(x.reference)}')">CLOSE</button></div>`).join("")||"No active BOLOs.";
  alertList.innerHTML=alerts.filter(x=>x.status==="ACTIVE").map(x=>`<div class="record"><span class="tag ${pill(x.priority)}">${esc(x.priority)}</span> <b>${esc(x.alert_type)}</b><p>${esc(x.message)}</p><small>${esc(x.officers?.callsign||"")} • ${esc(new Date(x.created_at).toLocaleString("en-GB"))}</small></div>`).join("")||"No active alerts.";
  const rf=radio.map(x=>`<div class="radio"><small>${esc(new Date(x.created_at).toLocaleString("en-GB"))} • <b>${esc(x.callsign)}</b> • ${esc(x.message_type)}</small><p>${esc(x.message)}</p></div>`).join("")||"No radio traffic.";
  radioFeed.innerHTML=rf;homeRadio.innerHTML=rf;
  homeAlerts.innerHTML=alerts.slice(0,5).map(x=>`<div class="record"><span class="tag ${pill(x.priority)}">${esc(x.priority)}</span> ${esc(x.message)}</div>`).join("")||"No alerts.";
- officerRows.innerHTML=officers.map(x=>`<tr><td>${esc(x.full_name)}</td><td><b>${esc(x.callsign)}</b></td><td>${esc(x.rank)}</td><td>${esc(x.department)}</td><td>${esc(x.duty_status)}</td></tr>`).join("");
+ officerRows.innerHTML = officers.map(x => `
+  <tr>
+    <td>
+      ${
+        me.role === "admin"
+          ? `<button class="link-button" onclick="editOfficer('${x.id}')">
+              ${esc(x.full_name)}
+             </button>`
+          : esc(x.full_name)
+      }
+    </td>
+
+    <td><b>${esc(x.callsign)}</b></td>
+    <td>${esc(x.rank)}</td>
+    <td>${esc(x.department)}</td>
+    <td>${esc(x.duty_status)}</td>
+
+    ${
+      me.role === "admin"
+        ? `<td>
+            <button class="secondary" onclick="editOfficer('${x.id}')">
+              EDIT
+            </button>
+           </td>`
+        : ""
+    }
+  </tr>
+`).join("");
  auditRows.innerHTML=audit.map(x=>`<tr><td>${esc(new Date(x.created_at).toLocaleString("en-GB"))}</td><td>${esc(x.callsign||"")}</td><td>${esc(x.action)}</td><td>${esc(x.reference||"")}</td></tr>`).join("");
  adminStatus.innerHTML=me.role==="admin"?`<div class="success">ADMIN ACCESS ENABLED — ${esc(me.callsign)}</div>`:`<div class="error">Administrator access required.</div>`;
 }
