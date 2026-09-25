@@ -1,0 +1,401 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PRC | Police Records & Communications</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--bg:#07111f;--panel:#0d1b2d;--panel2:#11243a;--border:#203852;--blue:#1677c8;--red:#c6283d;--orange:#e58a21;--green:#22a06b;--text:#f4f7fb;--muted:#9eafc2}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,sans-serif}button,input,select,textarea{font:inherit}button{cursor:pointer}
+#login{min-height:100vh;display:grid;place-items:center;background:radial-gradient(circle at top,#123456,transparent 42%),var(--bg)}
+.login-box{width:430px;max-width:92%;background:var(--panel);border:1px solid var(--border);border-top:4px solid var(--red);padding:34px;border-radius:12px;box-shadow:0 25px 80px #0008}
+.logo{display:flex;gap:12px;align-items:center;margin-bottom:28px}.logo-mark,.brand-box{background:var(--blue);display:grid;place-items:center;font-weight:900}.logo-mark{width:52px;height:52px;border-radius:8px}.logo h1{margin:0;font-size:22px}.logo small,.brand small{color:var(--muted);font-size:10px}
+label{display:block;color:var(--muted);font-size:12px;margin:0 0 6px}input,select,textarea{width:100%;background:#081525;color:#fff;border:1px solid var(--border);padding:11px;border-radius:7px;margin-bottom:16px}textarea{min-height:95px;resize:vertical}
+.btn{border:0;border-radius:6px;padding:10px 14px;font-weight:700;color:#fff}.blue{background:var(--blue)}.red{background:var(--red)}.green{background:var(--green)}.grey{background:#26384c}
+.fullbtn{width:100%}.error{display:none;background:#5b1d29;color:#ffb1bc;border:1px solid var(--red);padding:10px;border-radius:6px;margin-bottom:15px}
+#app{display:none}.topbar{height:68px;background:#081525;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;padding:0 22px;position:sticky;top:0;z-index:5}.brand{display:flex;gap:10px;align-items:center}.brand-box{width:38px;height:38px;border-radius:6px}.brand strong{display:block}.user{display:flex;gap:14px;align-items:center}.dot{width:9px;height:9px;border-radius:50%;background:var(--green);display:inline-block}
+.layout{display:flex}.side{position:fixed;top:68px;bottom:0;width:230px;background:#091728;border-right:1px solid var(--border);padding:15px 10px}.navtitle{font-size:10px;color:#657b91;margin:18px 8px 7px;text-transform:uppercase}.nav button{width:100%;text-align:left;background:transparent;border:0;color:#cbd6e2;padding:10px;border-radius:6px}.nav button:hover,.nav button.active{background:#102943;color:#fff}
+main{margin-left:230px;width:calc(100% - 230px);padding:26px}.page{display:none}.page.active{display:block}.title h2{margin:0 0 5px;font-size:27px}.title p{margin:0 0 22px;color:var(--muted)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}.stat{background:var(--panel);border:1px solid var(--border);border-radius:9px;padding:18px}.stat b{font-size:28px;display:block;margin-top:7px}.stat small{color:var(--muted)}.sred{border-left:4px solid var(--red)}.sblue{border-left:4px solid var(--blue)}.sorange{border-left:4px solid var(--orange)}.sgreen{border-left:4px solid var(--green)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.panel{background:var(--panel);border:1px solid var(--border);border-radius:9px;padding:18px}.panel h3{margin-top:0}.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.full{grid-column:1/-1}
+table{width:100%;border-collapse:collapse}th{text-align:left;color:var(--muted);font-size:10px;padding:10px;border-bottom:1px solid var(--border)}td{padding:10px;border-bottom:1px solid #172b40;font-size:13px}.scroll{overflow:auto}.badge{display:inline-block;padding:4px 7px;border-radius:4px;font-size:10px;font-weight:700;margin-right:4px}.b-red{background:#642330;color:#ff9baa}.b-orange{background:#68441f;color:#ffd08b}.b-blue{background:#163d61;color:#8acaff}.b-green{background:#164a38;color:#78e5b3}
+.feed{background:#06101d;border:1px solid var(--border);border-radius:8px;max-height:480px;overflow:auto}.radio{padding:12px;border-bottom:1px solid var(--border)}.radio time{color:#637a90;font-size:10px;margin-right:8px}.record{padding:13px;border-bottom:1px solid var(--border)}.muted{color:var(--muted);font-size:12px}.footer{margin-top:35px;padding:15px;border-top:1px solid var(--border);color:#60758a;text-align:center;font-size:10px}
+
+.modal-backdrop{position:fixed;inset:0;background:#000b;display:none;place-items:center;z-index:20;padding:20px}.modal-backdrop.open{display:grid}.modal{width:620px;max-width:100%;max-height:90vh;overflow:auto;background:var(--panel);border:1px solid var(--border);border-top:4px solid var(--blue);border-radius:12px;padding:22px;box-shadow:0 30px 100px #000c}.modal-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px}.modal-head h3{margin:0}.icon-btn{background:transparent;border:0;color:var(--muted);font-size:24px}.clickable-name{background:none;border:0;color:#fff;padding:0;text-align:left;font-weight:700;text-decoration:underline;text-decoration-color:#355b7d;text-underline-offset:3px}.clickable-name:hover{color:#8acaff}.admin-note{background:#102943;border:1px solid var(--border);padding:10px;border-radius:7px;color:var(--muted);font-size:12px;margin-bottom:16px}
+@media(max-width:900px){.side{width:68px}.navtitle{display:none}.nav button{font-size:0;text-align:center}.nav button:first-letter{font-size:18px}main{margin-left:68px;width:calc(100% - 68px)}.stats{grid-template-columns:1fr 1fr}.grid{grid-template-columns:1fr}}
+@media(max-width:600px){.stats,.formgrid{grid-template-columns:1fr}.full{grid-column:auto}.topbar{padding:0 9px}.brand strong{font-size:12px}}
+</style>
+</head>
+<body>
+
+<section id="login">
+<div class="login-box">
+  <div class="logo"><div class="logo-mark">PRC</div><div><h1>Police Records & Communications</h1><small>ERLC ROLEPLAY NETWORK</small></div></div>
+  <div id="loginError" class="error"></div>
+  <label>Email</label><input id="email" type="email" autocomplete="username" placeholder="Officer account email">
+  <label>Password</label><input id="password" type="password" autocomplete="current-password" placeholder="Password">
+  <button class="btn blue fullbtn" onclick="signIn()">LOGIN</button>
+  <p class="muted">RP system only. Do not enter real police or sensitive personal information.</p>
+</div>
+</section>
+
+<div id="app">
+<header class="topbar">
+  <div class="brand"><div class="brand-box">PRC</div><div><strong>Police Records & Communications</strong><small>ERLC ROLEPLAY NETWORK</small></div></div>
+  <div class="user"><span><i class="dot"></i> <b id="call"></b></span><button class="btn grey" onclick="signOut()">Logout</button></div>
+</header>
+<div class="layout">
+<aside class="side"><div class="nav">
+<div class="navtitle">Operations</div>
+<button class="active" onclick="page('dashboard',this)">▣ Dashboard</button>
+<button onclick="page('arrests',this)">⚖ Arrests</button>
+<button onclick="page('bolos',this)">🔴 BOLOs</button>
+<button onclick="page('alerts',this)">📢 Alerts</button>
+<button onclick="page('radio',this)">📻 Radio</button>
+<div class="navtitle">Records</div>
+<button onclick="page('search',this)">⌕ Search</button>
+<button onclick="page('officers',this)">♙ Officers</button>
+<button onclick="page('audit',this)">≡ Audit</button>
+<div class="navtitle">Administration</div>
+<button id="adminNav" onclick="page('admin',this)">⚙ Admin</button>
+</div></aside>
+
+<main>
+<section id="dashboard" class="page active">
+<div class="title"><h2>Command Dashboard</h2><p>Welcome, <span id="welcome"></span>.</p></div>
+<div class="stats">
+<div class="stat sred"><small>ACTIVE BOLOS</small><b id="nBolos">0</b></div>
+<div class="stat sorange"><small>ACTIVE ALERTS</small><b id="nAlerts">0</b></div>
+<div class="stat sblue"><small>ARRESTS</small><b id="nArrests">0</b></div>
+<div class="stat sgreen"><small>OFFICERS</small><b id="nOfficers">0</b></div>
+</div>
+<div class="grid"><div class="panel"><h3>Latest Alerts</h3><div id="dashAlerts"></div></div><div class="panel"><h3>Live ERLC Radio</h3><div class="feed" id="dashRadio"></div></div></div>
+</section>
+
+<section id="arrests" class="page">
+<div class="title"><h2>Arrest Records</h2><p>Fictional RP records.</p></div>
+<div class="panel"><h3>Log Arrest</h3><form onsubmit="createArrest(event)"><div class="formgrid">
+<div><label>Subject / RP Name</label><input id="aSubject" required></div>
+<div><label>Case Reference</label><input id="aCase"></div>
+<div><label>Offence</label><input id="aOffence" required></div>
+<div><label>Location</label><input id="aLocation" required></div>
+<div><label>Custody Status</label><select id="aStatus"><option>In Custody</option><option>Released</option><option>Transferred</option><option>Charged</option><option>Released Under Investigation</option></select></div>
+<div class="full"><label>Notes</label><textarea id="aNotes"></textarea></div>
+</div><button class="btn blue">Log Arrest</button></form></div><br>
+<div class="panel"><h3>Recent Arrests</h3><div class="scroll"><table><thead><tr><th>Reference</th><th>Subject</th><th>Offence</th><th>Officer</th><th>Status</th><th>Time</th>${me.role==="admin"?"<th>Actions</th>":""}</tr></thead><tbody id="arrestRows"></tbody></table></div></div>
+</section>
+
+<section id="bolos" class="page">
+<div class="title"><h2>BOLO Management</h2><p>Publish fictional RP lookouts to every connected PRC client.</p></div>
+<div class="panel"><h3>Create BOLO</h3><form onsubmit="createBolo(event)"><div class="formgrid">
+<div><label>Type</label><select id="bType"><option>Person</option><option>Vehicle</option><option>Property</option><option>Missing Person</option><option>Officer Safety</option></select></div>
+<div><label>Priority</label><select id="bPriority"><option>LOW</option><option>MEDIUM</option><option>HIGH</option><option>CRITICAL</option></select></div>
+<div><label>Subject</label><input id="bSubject" required></div>
+<div><label>Identifier</label><input id="bIdentifier"></div>
+<div><label>Last Known Location</label><input id="bLocation" required></div>
+<div><label>Incident Reference</label><input id="bIncident"></div>
+<div class="full"><label>Description</label><textarea id="bDescription" required></textarea></div>
+</div><button class="btn red">Publish BOLO</button></form></div><br>
+<div class="panel"><h3>Active BOLOs</h3><div id="boloList"></div></div>
+</section>
+
+<section id="alerts" class="page">
+<div class="title"><h2>Force Alerts</h2><p>Broadcast fictional RP alerts.</p></div>
+<div class="panel"><form onsubmit="createAlert(event)"><div class="formgrid">
+<div><label>Type</label><select id="fType"><option>General</option><option>Officer Safety</option><option>Incident</option><option>Missing Person</option><option>Emergency</option></select></div>
+<div><label>Priority</label><select id="fPriority"><option>LOW</option><option>MEDIUM</option><option>HIGH</option><option>CRITICAL</option></select></div>
+<div class="full"><label>Message</label><textarea id="fMessage" required></textarea></div>
+</div><button class="btn red">Publish Alert</button></form></div><br>
+<div class="panel"><h3>Active Alerts</h3><div id="alertList"></div></div>
+</section>
+
+<section id="radio" class="page">
+<div class="title"><h2>ERLC Radio</h2><p>Live database-backed RP communications.</p></div>
+<div class="panel"><div class="feed" id="radioFeed"></div></div><br>
+<div class="panel"><h3>Manual Broadcast</h3><form onsubmit="manualRadio(event)"><label>Type</label><select id="rType"><option>GENERAL</option><option>BOLO</option><option>INCIDENT</option><option>OFFICER SAFETY</option><option>EMERGENCY</option></select><label>Message</label><textarea id="rMessage" required></textarea><button class="btn blue">Broadcast</button></form></div>
+</section>
+
+<section id="search" class="page">
+<div class="title"><h2>Record Search</h2><p>Search loaded RP records.</p></div>
+<div class="panel"><input id="q" oninput="search()" placeholder="Search reference, subject, offence, callsign..."></div><br><div class="panel" id="results">Start typing to search.</div>
+</section>
+
+<section id="officers" class="page">
+<div class="title"><h2>Officer Directory</h2><p>Connected RP personnel. Administrators can click an officer's name to edit their profile.</p></div>
+<div class="panel"><div class="scroll"><table><thead><tr><th>Name</th><th>Callsign</th><th>Rank</th><th>Department</th><th>Role</th><th>Status</th></tr></thead><tbody id="officerRows"></tbody></table></div></div>
+</section>
+
+<section id="audit" class="page">
+<div class="title"><h2>Audit Log</h2><p>System activity.</p></div>
+<div class="panel"><div class="scroll"><table><thead><tr><th>Time</th><th>Callsign</th><th>Action</th><th>Reference</th></tr></thead><tbody id="auditRows"></tbody></table></div></div>
+</section>
+
+<section id="admin" class="page">
+<div class="title"><h2>Administration</h2><p>Account management is deliberately restricted to administrators.</p></div>
+<div class="panel"><h3>Create Officer</h3><p class="muted">Create the Auth account in Supabase Authentication first, then add the officer profile using the SQL template in SETUP.md. This avoids putting privileged service keys in the website.</p></div>
+</section>
+
+<div class="footer">PRC — FICTIONAL ROLEPLAY SYSTEM • NOT AN OFFICIAL POLICE DATABASE • ERLC / UKBP USE</div>
+</main>
+</div>
+</div>
+
+
+<div id="officerModal" class="modal-backdrop" onclick="if(event.target===this)closeOfficerEditor()">
+  <div class="modal">
+    <div class="modal-head"><h3>Edit Officer Profile</h3><button class="icon-btn" type="button" onclick="closeOfficerEditor()">×</button></div>
+    <div class="admin-note">Administrator only. Changes apply to this officer's PRC profile and permissions. This does not change their Supabase Auth email or password.</div>
+    <form onsubmit="saveOfficer(event)">
+      <input id="editOfficerId" type="hidden">
+      <div class="formgrid">
+        <div><label>Full Name</label><input id="editFullName" required></div>
+        <div><label>Callsign</label><input id="editCallsign" required></div>
+        <div><label>Rank</label><input id="editRank" required placeholder="e.g. Police Constable"></div>
+        <div><label>Department</label><input id="editDepartment" required></div>
+        <div><label>System Role</label><select id="editRole"><option value="officer">officer</option><option value="supervisor">supervisor</option><option value="admin">admin</option></select></div>
+        <div><label>Duty Status</label><select id="editDuty"><option value="AVAILABLE">AVAILABLE</option><option value="BUSY">BUSY</option><option value="OFF DUTY">OFF DUTY</option></select></div>
+        <div class="full"><label><input id="editActive" type="checkbox" style="width:auto;margin:0 7px 0 0"> Account/profile active</label></div>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px"><button type="button" class="btn grey" onclick="closeOfficerEditor()">Cancel</button><button class="btn blue">Save Profile</button></div>
+    </form>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = "https://gzegkiwtaytzwmrestge.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_rIQpBlqjeZRlmEX-Ce07Kw_LLy_ylY-";
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let me = null;
+let officers = [], arrests = [], bolos = [], alerts = [], radio = [], audit = [];
+
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const ref = p => `${p}-${new Date().getFullYear().toString().slice(-2)}-${Math.floor(10000+Math.random()*90000)}`;
+const badge = p => p==="CRITICAL"||p==="HIGH" ? "b-red" : p==="MEDIUM" ? "b-orange" : "b-blue";
+
+async function signIn(){
+  const error = document.getElementById("loginError");
+  error.style.display="none";
+  const {data,error:err}=await sb.auth.signInWithPassword({
+    email:document.getElementById("email").value.trim(),
+    password:document.getElementById("password").value
+  });
+  if(err){error.textContent=err.message;error.style.display="block";return;}
+  await boot(data.user);
+}
+
+async function signOut(){ await sb.auth.signOut(); location.reload(); }
+
+async function boot(user){
+  const {data,error}=await sb.from("officers").select("*").eq("id",user.id).maybeSingle();
+  if(error||!data){await sb.auth.signOut();alert("Your Auth account has no active PRC officer profile.");return;}
+  me=data;
+  if(!me.active){await sb.auth.signOut();alert("This officer account is inactive.");return;}
+  document.getElementById("login").style.display="none";
+  document.getElementById("app").style.display="block";
+  document.getElementById("call").textContent=me.callsign;
+  document.getElementById("welcome").textContent=me.callsign;
+  document.getElementById("adminNav").style.display=me.role==="admin"?"block":"none";
+  await loadAll();
+  subscribe();
+}
+
+async function loadAll(){
+  const [o,a,b,f,r,l]=await Promise.all([
+    sb.from("officers").select("*").order("callsign"),
+    sb.from("arrests").select("*, officers(callsign)").order("created_at",{ascending:false}).limit(100),
+    sb.from("bolos").select("*, officers(callsign)").order("created_at",{ascending:false}).limit(100),
+    sb.from("alerts").select("*, officers(callsign)").order("created_at",{ascending:false}).limit(100),
+    sb.from("radio_messages").select("*").order("created_at",{ascending:false}).limit(100),
+    sb.from("audit_logs").select("*").order("created_at",{ascending:false}).limit(200)
+  ]);
+  officers=o.data||[]; arrests=a.data||[]; bolos=b.data||[]; alerts=f.data||[]; radio=r.data||[]; audit=l.data||[];
+  render();
+}
+
+function subscribe(){
+  sb.channel("prc-live")
+    .on("postgres_changes",{event:"*",schema:"public",table:"officers"},()=>loadAll())
+    .on("postgres_changes",{event:"*",schema:"public",table:"bolos"},()=>loadAll())
+    .on("postgres_changes",{event:"*",schema:"public",table:"alerts"},()=>loadAll())
+    .on("postgres_changes",{event:"*",schema:"public",table:"radio_messages"},()=>loadAll())
+    .on("postgres_changes",{event:"*",schema:"public",table:"arrests"},()=>loadAll())
+    .on("postgres_changes",{event:"*",schema:"public",table:"audit_logs"},()=>loadAll())
+    .subscribe();
+}
+
+async function auditLog(action,reference){
+  const {error}=await sb.from("audit_logs").insert({officer_id:me.id,callsign:me.callsign,action,reference});
+  if(error){
+    console.error("Audit log failed:",error);
+    return false;
+  }
+  return true;
+}
+
+async function radioPost(type,message){
+  await sb.from("radio_messages").insert({message_type:type,message,callsign:me.callsign,officer_id:me.id});
+}
+
+async function createArrest(e){
+  e.preventDefault();
+  const reference=ref("ARREST");
+  const {error}=await sb.from("arrests").insert({
+    reference,subject:document.getElementById("aSubject").value.trim(),
+    case_reference:document.getElementById("aCase").value.trim()||null,
+    offence:document.getElementById("aOffence").value.trim(),
+    location:document.getElementById("aLocation").value.trim(),
+    custody_status:document.getElementById("aStatus").value,
+    notes:document.getElementById("aNotes").value.trim()||null,
+    officer_id:me.id
+  });
+  if(error){alert(error.message);return;}
+  await auditLog("ARREST CREATED",reference); e.target.reset(); await loadAll();
+}
+
+async function createBolo(e){
+  e.preventDefault();
+  const reference=ref("BOLO");
+  const type=document.getElementById("bType").value, priority=document.getElementById("bPriority").value,
+        subject=document.getElementById("bSubject").value.trim(), identifier=document.getElementById("bIdentifier").value.trim(),
+        location=document.getElementById("bLocation").value.trim(), incident=document.getElementById("bIncident").value.trim(),
+        description=document.getElementById("bDescription").value.trim();
+  const {error}=await sb.from("bolos").insert({reference,bolo_type:type,priority,subject,identifier:identifier||null,location,incident_reference:incident||null,description,officer_id:me.id});
+  if(error){alert(error.message);return;}
+  await radioPost("BOLO",`${priority} BOLO — ${type}. ${subject}. ${identifier?`Identifier: ${identifier}. `:""}Last known location: ${location}. Issued by ${me.callsign}.`);
+  await auditLog("BOLO CREATED",reference); e.target.reset(); await loadAll();
+}
+
+async function createAlert(e){
+  e.preventDefault();
+  const reference=ref("ALERT");
+  const type=document.getElementById("fType").value, priority=document.getElementById("fPriority").value, message=document.getElementById("fMessage").value.trim();
+  const {error}=await sb.from("alerts").insert({reference,alert_type:type,priority,message,officer_id:me.id});
+  if(error){alert(error.message);return;}
+  await radioPost("ALERT",`${priority} ${type} ALERT — ${message} Issued by ${me.callsign}.`);
+  await auditLog("ALERT CREATED",reference); e.target.reset(); await loadAll();
+}
+
+async function manualRadio(e){
+  e.preventDefault();
+  await radioPost(document.getElementById("rType").value,document.getElementById("rMessage").value.trim());
+  await auditLog("RADIO BROADCAST","RADIO"); e.target.reset(); await loadAll();
+}
+
+async function adminDelete(table,id,reference,label){
+  if(me.role!=="admin"){alert("Administrator permission required.");return;}
+  if(!confirm(`Delete ${label} ${reference}? This cannot be undone.`)) return;
+  const {error}=await sb.from(table).delete().eq("id",id);
+  if(error){alert(error.message);return;}
+  await auditLog(`${label} DELETED`,reference);
+  await loadAll();
+}
+
+async function deleteArrest(id,reference){ await adminDelete("arrests",id,reference,"ARREST"); }
+async function deleteBolo(id,reference){ await adminDelete("bolos",id,reference,"BOLO"); }
+async function deleteAlert(id,reference){ await adminDelete("alerts",id,reference,"ALERT"); }
+async function deleteRadio(id){ await adminDelete("radio_messages",id,"RADIO","RADIO MESSAGE"); }
+
+function openOfficerEditor(id){
+  if(me?.role!=="admin"){alert("Administrator permission required.");return;}
+  const officer=officers.find(x=>x.id===id);
+  if(!officer){alert("Officer profile not found.");return;}
+  document.getElementById("editOfficerId").value=officer.id;
+  document.getElementById("editFullName").value=officer.full_name||"";
+  document.getElementById("editCallsign").value=officer.callsign||"";
+  document.getElementById("editRank").value=officer.rank||"";
+  document.getElementById("editDepartment").value=officer.department||"";
+  document.getElementById("editRole").value=officer.role||"officer";
+  document.getElementById("editDuty").value=officer.duty_status||"OFF DUTY";
+  document.getElementById("editActive").checked=!!officer.active;
+  document.getElementById("officerModal").classList.add("open");
+}
+
+function closeOfficerEditor(){
+  document.getElementById("officerModal").classList.remove("open");
+}
+
+async function saveOfficer(e){
+  e.preventDefault();
+  if(me?.role!=="admin"){alert("Administrator permission required.");return;}
+  const id=document.getElementById("editOfficerId").value;
+  const before=officers.find(x=>x.id===id);
+  if(!before){alert("Officer profile not found.");return;}
+  const updated={
+    full_name:document.getElementById("editFullName").value.trim(),
+    callsign:document.getElementById("editCallsign").value.trim(),
+    rank:document.getElementById("editRank").value.trim(),
+    department:document.getElementById("editDepartment").value.trim(),
+    role:document.getElementById("editRole").value,
+    duty_status:document.getElementById("editDuty").value,
+    active:document.getElementById("editActive").checked
+  };
+  if(!updated.full_name||!updated.callsign||!updated.rank||!updated.department){alert("Please complete all required profile fields.");return;}
+  const {error}=await sb.from("officers").update(updated).eq("id",id);
+  if(error){alert(error.message);return;}
+  await auditLog("OFFICER PROFILE UPDATED",updated.callsign);
+  closeOfficerEditor();
+  if(id===me.id){
+    me={...me,...updated};
+    document.getElementById("call").textContent=me.callsign;
+    document.getElementById("welcome").textContent=me.callsign;
+    document.getElementById("adminNav").style.display=me.role==="admin"?"block":"none";
+  }
+  await loadAll();
+}
+
+async function closeBolo(id,reference){
+  if(!(me.role==="supervisor"||me.role==="admin"||bolos.find(x=>x.id===id)?.officer_id===me.id)){alert("You do not have permission to close this BOLO.");return;}
+  const {error}=await sb.from("bolos").update({status:"CLOSED",closed_at:new Date().toISOString()}).eq("id",id);
+  if(error){alert(error.message);return;}
+  await radioPost("BOLO UPDATE",`BOLO ${reference} has been closed by ${me.callsign}.`);
+  await auditLog("BOLO CLOSED",reference); await loadAll();
+}
+
+function page(id,btn){
+  document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+  document.querySelectorAll(".nav button").forEach(x=>x.classList.remove("active"));
+  btn.classList.add("active");
+}
+
+function render(){
+  document.getElementById("nBolos").textContent=bolos.filter(x=>x.status==="ACTIVE").length;
+  document.getElementById("nAlerts").textContent=alerts.filter(x=>x.status==="ACTIVE").length;
+  document.getElementById("nArrests").textContent=arrests.length;
+  document.getElementById("nOfficers").textContent=officers.length;
+
+  document.getElementById("arrestRows").innerHTML=arrests.map(x=>`<tr><td>${esc(x.reference)}</td><td>${esc(x.subject)}</td><td>${esc(x.offence)}</td><td>${esc(x.officers?.callsign||"")}</td><td>${esc(x.custody_status)}</td><td>${esc(new Date(x.created_at).toLocaleString("en-GB"))}</td>${me.role==="admin"?`<td><button class="btn red" onclick="deleteArrest('${x.id}','${esc(x.reference)}')">Delete</button></td>`:""}</tr>`).join("");
+
+  document.getElementById("boloList").innerHTML=bolos.filter(x=>x.status==="ACTIVE").map(x=>`<div class="record"><span class="badge ${badge(x.priority)}">${esc(x.priority)}</span><span class="badge b-red">${esc(x.bolo_type)}</span><b>${esc(x.reference)}</b><h3>${esc(x.subject)}</h3><p>${esc(x.description)}</p><span class="muted">Location: ${esc(x.location)} • Issued by ${esc(x.officers?.callsign||"")} • ${esc(new Date(x.created_at).toLocaleString("en-GB"))}</span><br><br><button class="btn grey" onclick="closeBolo('${x.id}','${esc(x.reference)}')">Close BOLO</button>${me.role==="admin"?` <button class="btn red" onclick="deleteBolo('${x.id}','${esc(x.reference)}')">Delete</button>`:""}</div>`).join("")||"No active BOLOs.";
+
+  document.getElementById("alertList").innerHTML=alerts.filter(x=>x.status==="ACTIVE").map(x=>`<div class="record"><span class="badge ${badge(x.priority)}">${esc(x.priority)}</span><span class="badge b-blue">${esc(x.alert_type)}</span><b>${esc(x.reference)}</b><p>${esc(x.message)}</p><span class="muted">${esc(x.officers?.callsign||"")} • ${esc(new Date(x.created_at).toLocaleString("en-GB"))}</span>${me.role==="admin"?`<br><br><button class="btn red" onclick="deleteAlert('${x.id}','${esc(x.reference)}')">Delete</button>`:""}</div>`).join("")||"No active alerts.";
+
+  const feed=radio.map(x=>`<div class="radio"><time>${esc(new Date(x.created_at).toLocaleString("en-GB"))}</time><b>[${esc(x.message_type)}] ${esc(x.callsign)}</b>${me.role==="admin"?` <button class="btn red" style="float:right;padding:5px 8px;font-size:11px" onclick="deleteRadio('${x.id}')">Delete</button>`:""}<br>${esc(x.message)}</div>`).join("");
+  document.getElementById("radioFeed").innerHTML=feed||"No radio traffic.";
+  document.getElementById("dashRadio").innerHTML=feed||"No radio traffic.";
+
+  document.getElementById("dashAlerts").innerHTML=alerts.slice(0,5).map(x=>`<div class="record"><span class="badge ${badge(x.priority)}">${esc(x.priority)}</span><b>${esc(x.alert_type)}</b><br>${esc(x.message)}</div>`).join("")||"No active alerts.";
+
+  document.getElementById("officerRows").innerHTML=officers.map(x=>`<tr><td>${me.role==="admin"?`<button class="clickable-name" onclick="openOfficerEditor('${x.id}')">${esc(x.full_name)}</button>`:esc(x.full_name)}</td><td><b>${esc(x.callsign)}</b></td><td>${esc(x.rank)}</td><td>${esc(x.department)}</td><td><span class="badge ${x.role==="admin"?"b-red":x.role==="supervisor"?"b-orange":"b-blue"}">${esc(x.role)}</span></td><td><span class="badge ${x.active?"b-green":"b-red"}">${esc(x.duty_status)}${x.active?"":" • INACTIVE"}</span></td></tr>`).join("");
+
+  document.getElementById("auditRows").innerHTML=audit.map(x=>`<tr><td>${esc(new Date(x.created_at).toLocaleString("en-GB"))}</td><td>${esc(x.callsign||"")}</td><td>${esc(x.action)}</td><td>${esc(x.reference||"")}</td></tr>`).join("");
+}
+
+function search(){
+  const q=document.getElementById("q").value.toLowerCase().trim();
+  if(!q){document.getElementById("results").textContent="Start typing to search.";return;}
+  const all=[
+    ...arrests.map(x=>({kind:"ARREST",ref:x.reference,text:`${x.subject} ${x.offence} ${x.officers?.callsign||""}`,row:x})),
+    ...bolos.map(x=>({kind:"BOLO",ref:x.reference,text:`${x.subject} ${x.description} ${x.location} ${x.officers?.callsign||""}`,row:x})),
+    ...alerts.map(x=>({kind:"ALERT",ref:x.reference,text:`${x.message} ${x.officers?.callsign||""}`,row:x}))
+  ];
+  const hit=all.filter(x=>`${x.ref} ${x.text}`.toLowerCase().includes(q));
+  document.getElementById("results").innerHTML=hit.map(x=>`<div class="record"><span class="badge b-blue">${esc(x.kind)}</span><b>${esc(x.ref)}</b><br>${esc(x.text)}</div>`).join("")||"No matching records.";
+}
+
+sb.auth.getSession().then(({data})=>{if(data.session)boot(data.session.user)});
+</script>
+</body>
+</html>
