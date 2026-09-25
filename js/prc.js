@@ -79,6 +79,142 @@ async function closeBolo(id,reference){
  const {error}=await sb.from("bolos").update({status:"CLOSED",closed_at:new Date().toISOString()}).eq("id",id);
  if(error){alert(error.message);return;}await transmit("BOLO UPDATE",`BOLO ${reference} closed by ${me.callsign}.`);await logAudit("BOLO CLOSED",reference);loadAll();
 }
+// ===============================
+// ADMIN DELETE FUNCTIONS
+// ===============================
+
+async function adminDelete(table, id, reference) {
+  if (me.role !== "admin") {
+    alert("Administrator access required.");
+    return;
+  }
+
+  if (!confirm(`Are you sure you want to permanently delete ${reference || "this record"}?`)) {
+    return;
+  }
+
+  const { error } = await sb
+    .from(table)
+    .delete()
+    .eq("id", id);
+
+  if (error) {
+    alert("Delete failed: " + error.message);
+    return;
+  }
+
+  await logAudit(
+    `${table.toUpperCase()} DELETED`,
+    reference || id
+  );
+
+  await loadAll();
+}
+
+
+// ===============================
+// ADMIN UPDATE OFFICER
+// ===============================
+
+async function editOfficer(id) {
+  if (me.role !== "admin") {
+    alert("Administrator access required.");
+    return;
+  }
+
+  const officer = officers.find(x => x.id === id);
+
+  if (!officer) {
+    alert("Officer not found.");
+    return;
+  }
+
+  const fullName = prompt("Full name:", officer.full_name);
+  if (fullName === null) return;
+
+  const callsign = prompt("Callsign:", officer.callsign);
+  if (callsign === null) return;
+
+  const rank = prompt("Rank:", officer.rank);
+  if (rank === null) return;
+
+  const department = prompt("Department:", officer.department);
+  if (department === null) return;
+
+  const dutyStatus = prompt(
+    "Duty status:",
+    officer.duty_status || "OFF DUTY"
+  );
+
+  if (dutyStatus === null) return;
+
+  const role = prompt(
+    "System role (officer / supervisor / admin):",
+    officer.role
+  );
+
+  if (role === null) return;
+
+  const { error } = await sb
+    .from("officers")
+    .update({
+      full_name: fullName.trim(),
+      callsign: callsign.trim(),
+      rank: rank.trim(),
+      department: department.trim(),
+      duty_status: dutyStatus.trim(),
+      role: role.trim()
+    })
+    .eq("id", id);
+
+  if (error) {
+    alert("Officer update failed: " + error.message);
+    return;
+  }
+
+  await logAudit(
+    "OFFICER PROFILE UPDATED",
+    callsign.trim()
+  );
+
+  await loadAll();
+}
+
+
+// ===============================
+// ADMIN DELETE ARREST
+// ===============================
+
+async function deleteArrest(id, reference) {
+  await adminDelete("arrests", id, reference);
+}
+
+
+// ===============================
+// ADMIN DELETE BOLO
+// ===============================
+
+async function deleteBolo(id, reference) {
+  await adminDelete("bolos", id, reference);
+}
+
+
+// ===============================
+// ADMIN DELETE ALERT
+// ===============================
+
+async function deleteAlert(id, reference) {
+  await adminDelete("alerts", id, reference);
+}
+
+
+// ===============================
+// ADMIN DELETE RADIO MESSAGE
+// ===============================
+
+async function deleteRadio(id) {
+  await adminDelete("radio_messages", id, "RADIO MESSAGE");
+}
 function render(){
  statBolos.textContent=bolos.filter(x=>x.status==="ACTIVE").length;statAlerts.textContent=alerts.filter(x=>x.status==="ACTIVE").length;statArrests.textContent=arrests.length;statOfficers.textContent=officers.length;
  arrestRows.innerHTML=arrests.map(x=>`<tr><td>${esc(x.reference)}</td><td>${esc(x.subject)}</td><td>${esc(x.offence)}</td><td>${esc(x.officers?.callsign||"")}</td><td>${esc(x.custody_status)}</td><td>${esc(new Date(x.created_at).toLocaleString("en-GB"))}</td></tr>`).join("");
